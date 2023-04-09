@@ -1,0 +1,32 @@
+{
+  "name": "turtle-builder",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check build-only",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --noEmit",
+    "generate-component": "npx @dsabre/generate-vue-cli --dir=src/components"
+  },
+  "dependencies": {
+    "pinia": "^2.0.32",
+    "three": "^0.151.3",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@dsabre/generate-vue-cli": "^1.1.1",
+    "@types/node": "^18.14.2",
+    "@types/three": "^0.150.1",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "@vue/tsconfig": "^0.1.3",
+    "autoprefixer": "^10.4.14",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.1",
+    "typescript": "~4.8.4",
+    "vite": "^4.1.4",
+    "vue-tsc": "^1.2.0"
+  }
+}
