@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue';
+import { nextTick, ref, toRaw } from 'vue';
 import * as THREE from 'three';
-import Turtle from '@/composables/Turtle';
-import Actions from '@/composables/Actions';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { isDev } from '@/composables/functions';
+import { useTurtleStore } from '@/stores/turtle';
+import { useActionsStore } from '@/stores/actions';
 
 const builder = ref();
+const turtleStore = useTurtleStore();
+const actionsStore = useActionsStore();
 
 nextTick(() => {
     const scene = new THREE.Scene();
@@ -16,9 +18,7 @@ nextTick(() => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.querySelector('#app')?.appendChild(renderer.domElement);
 
-    const turtleClass = new Turtle();
-    const turtle = turtleClass.getTurtle();
-    scene.add(turtle);
+    scene.add(toRaw(turtleStore.turtle));
 
     camera.position.z = 5;
 
@@ -28,8 +28,7 @@ nextTick(() => {
         renderer.render(scene, camera);
     }
 
-    const actions = new Actions(turtle);
-    actions.listener();
+    actionsStore.listener();
 
     animate();
 
