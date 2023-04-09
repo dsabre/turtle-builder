@@ -118,5 +118,5 @@ export const useActionsStore = defineStore('actions', () => {
         });
     };
 
-    return {listener};
+    return {listener, listActions};
 });
