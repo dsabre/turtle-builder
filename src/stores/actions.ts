@@ -31,17 +31,27 @@ const validActions = [
 
     'r'
 ];
+const storeId = 'actions';
 
-export const useActionsStore = defineStore('actions', () => {
+export const useActionsStore = defineStore(storeId, () => {
     const turtleStore = useTurtleStore();
     const turtle = toRaw(turtleStore.turtle);
-    const listActions = ref<string[]>([]);
+    const listActions = ref<string[]>(JSON.parse(localStorage.getItem(storeId) || '[]'));
+    const saveActions = () => {
+        // localStorage.setItem(storeId, JSON.stringify(listActions.value))
+    };
+    const addAction = (action: string, save: boolean) => {
+        listActions.value.push(action);
 
+        if (save) {
+            saveActions();
+        }
+    };
+    const clearActions = () => localStorage.removeItem(storeId);
     const placeItem = (action: string): boolean => {
         console.log('🚀 ~ file: actions.ts:41 ~ placeItem ~ action:', action);
         return false;
     };
-
     const movements = (action: string): boolean => {
         switch (action) {
             case 'u':
@@ -68,9 +78,9 @@ export const useActionsStore = defineStore('actions', () => {
 
         return false;
     };
-
     const rollbackLastAction = (): void => {
         let lastAction = listActions.value.pop();
+        saveActions();
 
         if (!lastAction) {
             return;
@@ -97,26 +107,29 @@ export const useActionsStore = defineStore('actions', () => {
                 break;
         }
     };
+    const doAction = (action: string, save: boolean = true) => {
+        if (!validActions.includes(action)) {
+            return false;
+        }
 
+        if (movements(action)) {
+            addAction(action, save);
+        } else if (placeItem(action)) {
+            addAction(action, save);
+        } else {
+            rollbackLastAction();
+        }
+    };
     const listener = () => {
+        listActions.value.forEach((action: string) => {
+            doAction(action, false);
+        });
+
         document.addEventListener('keypress', (event) => {
             event.preventDefault();
-
-            const action = event.key;
-
-            if (!validActions.includes(action)) {
-                return false;
-            }
-
-            if (movements(action)) {
-                listActions.value.push(action);
-            } else if (placeItem(action)) {
-                listActions.value.push(action);
-            } else {
-                rollbackLastAction();
-            }
+            doAction(event.key);
         });
     };
 
-    return {listener, listActions};
+    return {listener, listActions, clearActions};
 });
