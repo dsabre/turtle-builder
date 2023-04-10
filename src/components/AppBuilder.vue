@@ -56,6 +56,16 @@ nextTick(() => {
         const axesHelper = new THREE.AxesHelper(5);
         scene.add(axesHelper);
     }
+
+    window.onresize = () => {
+        const w = window.innerWidth - 260;
+        const h = window.innerHeight - 150;
+
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(w, h);
+    };
 });
 
 onUnmounted(() => actionsStore.removeListener());
