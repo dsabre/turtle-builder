@@ -47,7 +47,10 @@ export const useActionsStore = defineStore(storeId, () => {
             saveActions();
         }
     };
-    const clearActions = () => localStorage.removeItem(storeId);
+    const clearActions = () => {
+        localStorage.removeItem(storeId);
+        listActions.value = [];
+    };
     const placeItem = (action: string): boolean => {
         console.log('🚀 ~ file: actions.ts:41 ~ placeItem ~ action:', action);
         return false;
@@ -141,5 +144,5 @@ export const useActionsStore = defineStore(storeId, () => {
     };
     const removeListener = () => document.removeEventListener('keypress', handleKeyPress, false);
 
-    return {addListener, removeListener, listActions, clearActions, restoreActions};
+    return {addListener, removeListener, listActions, clearActions, restoreActions, doAction};
 });

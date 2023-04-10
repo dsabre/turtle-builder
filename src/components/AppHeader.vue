@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { useActionsStore } from '@/stores/actions';
 import { useFullscreenStore } from '@/stores/fullscreen';
+import AppModal from './AppModal/AppModal.vue';
+import { ref, watch } from 'vue';
+import type IAppModalExposeModel from './AppModal/IAppModalExposeModel';
+import FormCreateFromString from '@/forms/FormCreateFromString.vue';
 
 const actionsStore = useActionsStore();
 const fullscreenStore = useFullscreenStore();
+
+const modalCreateFromString = ref<IAppModalExposeModel>();
+const modalCreateFromStringOpened = ref<boolean>(false);
 
 const resetBuild = () => {
     if (confirm('This operation is irreversible, continue?')) {
@@ -11,25 +18,39 @@ const resetBuild = () => {
         location.reload();
     }
 };
-const createFromString = () => {
-    // TODO
-    alert('TODO');
-};
 const generateProgram = () => {
     // TODO
     alert('TODO');
 };
+
+watch(modalCreateFromStringOpened, () => {
+    if (modalCreateFromStringOpened.value) {
+        actionsStore.removeListener()
+    }
+    else {
+        actionsStore.addListener();
+    }
+});
 </script>
 
 <template>
     <div>
+        <AppModal ref="modalCreateFromString" :opened="modalCreateFromStringOpened"
+            :closingCallback="() => modalCreateFromStringOpened = false">
+            <template #header>
+                Create from actions string
+            </template>
+            <FormCreateFromString />
+        </AppModal>
+
         <header class="text-gray-600 body-font border-b">
             <div class="flex flex-wrap p-2 flex-col md:flex-row items-center">
                 <a class="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
                     <span class="ml-3 text-xl">Computercraft - turtle builder</span>
                 </a>
                 <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
-                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1" @click.prevent="fullscreenStore.fullscreen = true">
+                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1"
+                        @click.prevent="fullscreenStore.fullscreen = true">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -45,7 +66,8 @@ const generateProgram = () => {
                         </svg>
                         <span>Reset</span>
                     </span>
-                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1" @click.prevent="createFromString">
+                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1"
+                        @click.prevent="modalCreateFromStringOpened = true">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
