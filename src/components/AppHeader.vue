@@ -5,15 +5,18 @@ import AppModal from './AppModal/AppModal.vue';
 import { ref, watch } from 'vue';
 import type IAppModalExposeModel from './AppModal/IAppModalExposeModel';
 import FormCreateFromString from '@/forms/FormCreateFromString.vue';
+import { useLoadingStore } from '@/stores/loading';
 
 const actionsStore = useActionsStore();
 const fullscreenStore = useFullscreenStore();
+const loadingStore = useLoadingStore();
 
 const modalCreateFromString = ref<IAppModalExposeModel>();
 const modalCreateFromStringOpened = ref<boolean>(false);
 
 const resetBuild = () => {
     if (confirm('This operation is irreversible, continue?')) {
+        loadingStore.loading = true;
         actionsStore.clearActions();
         location.reload();
     }
