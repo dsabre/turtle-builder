@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {useTurtleStore} from './turtle';
-import {ref, toRaw} from 'vue';
+import {nextTick, ref, toRaw} from 'vue';
 
 const validActions = [
     'i',
@@ -36,10 +36,9 @@ const storeId = 'actions';
 export const useActionsStore = defineStore(storeId, () => {
     const turtleStore = useTurtleStore();
     const turtle = toRaw(turtleStore.turtle);
-    const listActions = ref<string[]>(JSON.parse(localStorage.getItem(storeId) || '[]'));
-    const saveActions = () => {
-        // localStorage.setItem(storeId, JSON.stringify(listActions.value))
-    };
+    const listActions = ref<string[]>([]);
+    const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
+    const saveActions = () => localStorage.setItem(storeId, JSON.stringify(listActions.value));
     const addAction = (action: string, save: boolean) => {
         listActions.value.push(action);
 
@@ -121,13 +120,18 @@ export const useActionsStore = defineStore(storeId, () => {
         }
     };
     const listener = () => {
-        listActions.value.forEach((action: string) => {
-            doAction(action, false);
+        nextTick(() => {
+            getActionsFromStorage().forEach((action: string) => {
+                doAction(action, false);
+            });
         });
 
         document.addEventListener('keypress', (event) => {
             event.preventDefault();
-            doAction(event.key);
+
+            if (!event.ctrlKey) {
+                doAction(event.key);
+            }
         });
     };
 
