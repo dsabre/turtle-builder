@@ -5,14 +5,31 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { isDev } from '@/composables/functions';
 import { useTurtleStore } from '@/stores/turtle';
 import { useActionsStore } from '@/stores/actions';
+import { useFullscreenStore } from '@/stores/fullscreen';
 
 const builder = ref();
 const turtleStore = useTurtleStore();
 const actionsStore = useActionsStore();
+const fullscreenStore = useFullscreenStore();
+const getDimensionsOffset = (): { w: number; h: number } => {
+    if (fullscreenStore.fullscreen) {
+        return {
+            w: 0,
+            h: 0
+        }
+    }
 
-nextTick(() => {
-    const w = window.innerWidth - 260;
-    const h = window.innerHeight - 150;
+    return {
+        w: 260,
+        h: 150
+    }
+};
+const createBuilder = () => {
+    builder.value.innerHTML = '';
+    const dimensionsOffset = getDimensionsOffset();
+
+    const w = window.innerWidth - dimensionsOffset.w;
+    const h = window.innerHeight - dimensionsOffset.h;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
@@ -57,18 +74,37 @@ nextTick(() => {
         scene.add(axesHelper);
     }
 
+    // listen for window resizing
     window.onresize = () => {
-        const w = window.innerWidth - 260;
-        const h = window.innerHeight - 150;
+        const w = window.innerWidth - dimensionsOffset.w;
+        const h = window.innerHeight - dimensionsOffset.h;
 
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
 
         renderer.setSize(w, h);
     };
+};
+const onFullscreenchange = () => fullscreenStore.fullscreen = !!document.fullscreenElement;
+document.addEventListener("fullscreenchange", onFullscreenchange, false);
+
+// fullscreen listener
+fullscreenStore.$subscribe(() => {
+    if (fullscreenStore.fullscreen) {
+        builder.value.requestFullscreen();
+    }
+
+    createBuilder();
 });
 
-onUnmounted(() => actionsStore.removeListener());
+// initial creation
+nextTick(() => createBuilder());
+
+// listen for component unmount
+onUnmounted(() => {
+    actionsStore.removeListener();
+    document.removeEventListener("fullscreenchange", onFullscreenchange, false);
+});
 </script>
 
 <template>
