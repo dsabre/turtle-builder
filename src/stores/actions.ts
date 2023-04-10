@@ -1,6 +1,8 @@
 import {defineStore} from 'pinia';
 import {useTurtleStore} from './turtle';
 import {nextTick, ref, toRaw} from 'vue';
+import {hexToDecimal} from '@/composables/functions';
+import * as THREE from 'three';
 
 const validActions = [
     'i',
@@ -32,10 +34,32 @@ const validActions = [
     'r'
 ];
 const storeId = 'actions';
+const getCube = (r: number, g: number, b: number): THREE.Mesh => {
+    const piece = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
+    const material = new THREE.MeshBasicMaterial({
+        vertexColors: true
+    });
+
+    const color = new THREE.Color(`rgb(${r}, ${g}, ${b})`);
+    const colors = Array(6).fill(color);
+    const facesColors: number[] = [];
+
+    colors.forEach((color) => {
+        for (let k = 0; k < 6; k++) {
+            facesColors.push(color.r, color.g, color.b);
+        }
+    });
+
+    // define the new attribute
+    piece.setAttribute('color', new THREE.Float32BufferAttribute(facesColors, 3));
+    return new THREE.Mesh(piece, material);
+};
 
 export const useActionsStore = defineStore(storeId, () => {
     const turtleStore = useTurtleStore();
     const turtle = toRaw(turtleStore.turtle);
+    const inventory = toRaw(turtleStore.inventory);
+    const scene = ref<THREE.Scene>();
     const listActions = ref<string[]>([]);
     const mustRestoreActions = ref<boolean>(true);
     const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
@@ -52,8 +76,23 @@ export const useActionsStore = defineStore(storeId, () => {
         listActions.value = [];
     };
     const placeItem = (action: string): boolean => {
-        console.log('🚀 ~ file: actions.ts:41 ~ placeItem ~ action:', action);
-        return false;
+        const color = inventory[hexToDecimal(action)];
+
+        if (!color) {
+            return false;
+        }
+
+        if (!color.selected || turtle.position.y < 1) {
+            return true;
+        }
+
+        const {r, g, b} = color;
+
+        const mesh = getCube(r, g, b);
+        scene.value?.add(mesh);
+        mesh.position.set(turtle.position.x, turtle.position.y - 1, turtle.position.z);
+
+        return true;
     };
     const movements = (action: string): boolean => {
         switch (action) {
@@ -144,5 +183,5 @@ export const useActionsStore = defineStore(storeId, () => {
     };
     const removeListener = () => document.removeEventListener('keypress', handleKeyPress, false);
 
-    return {addListener, removeListener, listActions, clearActions, restoreActions, doAction};
+    return {addListener, removeListener, listActions, clearActions, restoreActions, doAction, scene};
 });

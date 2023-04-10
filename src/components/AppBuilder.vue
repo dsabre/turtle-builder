@@ -32,6 +32,7 @@ const createBuilder = () => {
     const h = window.innerHeight - dimensionsOffset.h;
 
     const scene = new THREE.Scene();
+    actionsStore.scene = scene;
     const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
 
     const renderer = new THREE.WebGLRenderer();
