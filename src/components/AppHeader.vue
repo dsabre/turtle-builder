@@ -2,10 +2,12 @@
 import { useActionsStore } from '@/stores/actions';
 import { useFullscreenStore } from '@/stores/fullscreen';
 import AppModal from './AppModal/AppModal.vue';
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import type IAppModalExposeModel from './AppModal/IAppModalExposeModel';
 import FormCreateFromString from '@/forms/FormCreateFromString.vue';
 import { useLoadingStore } from '@/stores/loading';
+import AppLuaCode from './AppLuaCode/AppLuaCode.vue';
+import type IAppLuaCodeExposeModel from './AppLuaCode/IAppLuaCodeExposeModel';
 
 const actionsStore = useActionsStore();
 const fullscreenStore = useFullscreenStore();
@@ -13,6 +15,9 @@ const loadingStore = useLoadingStore();
 
 const modalCreateFromString = ref<IAppModalExposeModel>();
 const modalCreateFromStringOpened = ref<boolean>(false);
+const modalCode = ref<IAppModalExposeModel>();
+const modalCodeOpened = ref<boolean>(false);
+const appLuaCode = ref<IAppLuaCodeExposeModel>();
 
 const resetBuild = () => {
     if (confirm('This operation is irreversible, continue?')) {
@@ -21,14 +26,19 @@ const resetBuild = () => {
         location.reload();
     }
 };
-const generateProgram = () => {
-    // TODO
-    alert('TODO');
-};
 
 watch(modalCreateFromStringOpened, () => {
     if (modalCreateFromStringOpened.value) {
-        actionsStore.removeListener()
+        actionsStore.removeListener();
+    }
+    else {
+        actionsStore.addListener();
+    }
+});
+watch(modalCodeOpened, () => {
+    if (modalCodeOpened.value) {
+        nextTick(() => appLuaCode.value?.doHighlight());
+        actionsStore.removeListener();
     }
     else {
         actionsStore.addListener();
@@ -44,6 +54,13 @@ watch(modalCreateFromStringOpened, () => {
                 Create from actions string
             </template>
             <FormCreateFromString />
+        </AppModal>
+
+        <AppModal ref="modalCode" :opened="modalCodeOpened" :closingCallback="() => modalCodeOpened = false">
+            <template #header>
+                Generated code
+            </template>
+            <AppLuaCode ref="appLuaCode" />
         </AppModal>
 
         <header class="text-gray-600 body-font border-b">
@@ -78,7 +95,8 @@ watch(modalCreateFromStringOpened, () => {
                         </svg>
                         <span>Create from actions string</span>
                     </span>
-                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1" @click.prevent="generateProgram">
+                    <span class="mr-5 hover:text-gray-900 cursor-pointer flex gap-1"
+                        @click.prevent="modalCodeOpened = true">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"

@@ -8,3 +8,14 @@ export const getFormData = <T>(event: Event): T => {
 
     return object as T;
 };
+
+export const arrayChunk = <T>(array: unknown[], chunkSize: number): T => {
+    const ret = [];
+
+    for (let i = 0; i < array.length; i += chunkSize) {
+        const chunk = array.slice(i, i + chunkSize);
+        ret.push(chunk);
+    }
+
+    return ret as T;
+};
