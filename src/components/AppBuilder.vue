@@ -23,7 +23,9 @@ nextTick(() => {
 
     scene.add(toRaw(turtleStore.turtle));
 
-    camera.position.z = 5;
+    camera.position.x = -3;
+    camera.position.y = 3;
+    camera.position.z = 3;
 
     function animate() {
         requestAnimationFrame(animate);
