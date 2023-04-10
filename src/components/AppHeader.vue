@@ -8,7 +8,9 @@ import FormCreateFromString from '@/forms/FormCreateFromString.vue';
 import { useLoadingStore } from '@/stores/loading';
 import AppLuaCode from './AppLuaCode/AppLuaCode.vue';
 import type IAppLuaCodeExposeModel from './AppLuaCode/IAppLuaCodeExposeModel';
+import { useTurtleStore } from '@/stores/turtle';
 
+const turtleStore = useTurtleStore();
 const actionsStore = useActionsStore();
 const fullscreenStore = useFullscreenStore();
 const loadingStore = useLoadingStore();
@@ -23,6 +25,7 @@ const resetBuild = () => {
     if (confirm('This operation is irreversible, continue?')) {
         loadingStore.loading = true;
         actionsStore.clearActions();
+        turtleStore.clearInventory();
         location.reload();
     }
 };

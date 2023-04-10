@@ -19,3 +19,5 @@ export const arrayChunk = <T>(array: unknown[], chunkSize: number): T => {
 
     return ret as T;
 };
+
+export const rgbToGrayscale = (red: number, green: number, blue: number) => (red + green + blue) / 3;
