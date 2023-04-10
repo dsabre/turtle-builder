@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, toRaw } from 'vue';
+import { nextTick, onUnmounted, ref, toRaw } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { isDev } from '@/composables/functions';
@@ -33,7 +33,7 @@ nextTick(() => {
         renderer.render(scene, camera);
     }
 
-    actionsStore.listener();
+    actionsStore.addListener();
 
     animate();
 
@@ -56,7 +56,9 @@ nextTick(() => {
         const axesHelper = new THREE.AxesHelper(5);
         scene.add(axesHelper);
     }
-})
+});
+
+onUnmounted(() => actionsStore.removeListener());
 </script>
 
 <template>

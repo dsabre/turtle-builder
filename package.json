@@ -8,12 +8,14 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
-    "generate-component": "npx @dsabre/generate-vue-cli --dir=src/components"
+    "generate-component": "npx @dsabre/generate-vue-cli --dir=src/components",
+    "generate-view": "npx @dsabre/generate-vue-cli --dir=src/views"
   },
   "dependencies": {
     "pinia": "^2.0.32",
     "three": "^0.151.3",
-    "vue": "^3.2.47"
+    "vue": "^3.2.47",
+    "vue-router": "4"
   },
   "devDependencies": {
     "@dsabre/generate-vue-cli": "^1.1.1",

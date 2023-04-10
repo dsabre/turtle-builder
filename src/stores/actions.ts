@@ -37,6 +37,7 @@ export const useActionsStore = defineStore(storeId, () => {
     const turtleStore = useTurtleStore();
     const turtle = toRaw(turtleStore.turtle);
     const listActions = ref<string[]>([]);
+    const mustRestoreActions = ref<boolean>(true);
     const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
     const saveActions = () => localStorage.setItem(storeId, JSON.stringify(listActions.value));
     const addAction = (action: string, save: boolean) => {
@@ -119,21 +120,26 @@ export const useActionsStore = defineStore(storeId, () => {
             rollbackLastAction();
         }
     };
-    const listener = () => {
-        nextTick(() => {
-            getActionsFromStorage().forEach((action: string) => {
-                doAction(action, false);
-            });
-        });
+    const handleKeyPress = (event: KeyboardEvent) => {
+        event.preventDefault();
 
-        document.addEventListener('keypress', (event) => {
-            event.preventDefault();
-
-            if (!event.ctrlKey) {
-                doAction(event.key);
-            }
-        });
+        if (!event.ctrlKey) {
+            doAction(event.key);
+        }
     };
+    const restoreActions = () =>
+        getActionsFromStorage().forEach((action: string) => {
+            doAction(action, false);
+        });
+    const addListener = () => {
+        if (mustRestoreActions.value) {
+            mustRestoreActions.value = false;
+            nextTick(() => restoreActions());
+        }
 
-    return {listener, listActions, clearActions};
+        document.addEventListener('keypress', handleKeyPress, false);
+    };
+    const removeListener = () => document.removeEventListener('keypress', handleKeyPress, false);
+
+    return {addListener, removeListener, listActions, clearActions, restoreActions};
 });
