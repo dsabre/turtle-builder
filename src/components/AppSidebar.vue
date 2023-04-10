@@ -56,10 +56,15 @@ watch(modalColorOpened, () => {
 
             <div class="grid grid-cols-4 gap-1">
                 <div v-for="(i, k) in inventory" @click.prevent="() => openModal(k)"
-                    :class="{ 'border w-15 aspect-square cursor-pointer flex items-center justify-center': true, 'bg-gray-400': !i.selected }"
-                    :style="{ backgroundColor: i.selected ? `rgb(${i.r}, ${i.g}, ${i.b})` : undefined, color: i.selected ? i.textColor : undefined }">
-                    <span>{{ hexString(k) }}</span>
+                    :class="{ 'border w-15 aspect-square cursor-pointer flex items-center justify-center': true, 'bg-gray-400': i.quantity < 1 }"
+                    :style="{ backgroundColor: i.quantity > 0 ? `rgb(${i.r}, ${i.g}, ${i.b})` : undefined, color: i.quantity > 0 ? i.textColor : undefined }">
+                    <span>{{ i.quantity }}</span>
                 </div>
+            </div>
+
+            <div>
+                <h3 class="font-bold">Fill inventory with color:</h3>
+                <FormPickColor :slotId="-1" slotCommand="all" />
             </div>
         </div>
     </div>

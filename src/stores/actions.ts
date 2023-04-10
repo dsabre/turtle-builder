@@ -35,11 +35,14 @@ const validActions = [
 ];
 const storeId = 'actions';
 const getCube = (r: number, g: number, b: number): THREE.Mesh => {
-    const piece = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
+    const geometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
+    const edges = new THREE.EdgesGeometry( geometry );
     const material = new THREE.MeshBasicMaterial({
         vertexColors: true
     });
-
+    const line = new THREE.LineSegments(edges, material);
+    console.log(line)
+    
     const color = new THREE.Color(`rgb(${r}, ${g}, ${b})`);
     const colors = Array(6).fill(color);
     const facesColors: number[] = [];
@@ -51,17 +54,18 @@ const getCube = (r: number, g: number, b: number): THREE.Mesh => {
     });
 
     // define the new attribute
-    piece.setAttribute('color', new THREE.Float32BufferAttribute(facesColors, 3));
-    return new THREE.Mesh(piece, material);
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(facesColors, 3));
+    return new THREE.Mesh(geometry, material);
 };
 
 export const useActionsStore = defineStore(storeId, () => {
     const turtleStore = useTurtleStore();
     const turtle = toRaw(turtleStore.turtle);
-    const inventory = toRaw(turtleStore.inventory);
     const scene = ref<THREE.Scene>();
     const listActions = ref<string[]>([]);
+    const lastSlotSelected = ref<number>(0);
     const mustRestoreActions = ref<boolean>(true);
+    const cubesAdded = ref<THREE.Mesh[]>([]);
     const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
     const saveActions = () => localStorage.setItem(storeId, JSON.stringify(listActions.value));
     const addAction = (action: string, save: boolean) => {
@@ -76,21 +80,55 @@ export const useActionsStore = defineStore(storeId, () => {
         listActions.value = [];
     };
     const placeItem = (action: string): boolean => {
-        const color = inventory[hexToDecimal(action)];
+        let slotId;
+
+        if (action === 'z') {
+            slotId = lastSlotSelected.value;
+        } else if (action === 'x') {
+            for (let index = 0; index < turtleStore.inventory.length; index++) {
+                const element = turtleStore.inventory[index];
+
+                if (element.quantity > 0) {
+                    slotId = index;
+                    break;
+                }
+            }
+        } else {
+            slotId = hexToDecimal(action);
+        }
+
+        if (slotId === undefined) {
+            return false;
+        }
+
+        const color = turtleStore.inventory[slotId];
 
         if (!color) {
             return false;
         }
 
-        if (!color.selected || turtle.position.y < 1) {
-            return true;
+        if (color.quantity < 1 || turtle.position.y < 1) {
+            return false;
+        }
+
+        const x = turtle.position.x;
+        const y = turtle.position.y - 1;
+        const z = turtle.position.z;
+
+        if (cubesAdded.value.filter((mesh) => mesh.position.x === x && mesh.position.y === y && mesh.position.z === z).length > 0) {
+            return false;
         }
 
         const {r, g, b} = color;
+        turtleStore.inventory[slotId].quantity--;
 
-        const mesh = getCube(r, g, b);
-        scene.value?.add(mesh);
-        mesh.position.set(turtle.position.x, turtle.position.y - 1, turtle.position.z);
+        const cube = getCube(r, g, b);
+        scene.value?.add(cube);
+        cube.position.set(x, y, z);
+
+        cubesAdded.value.push(cube);
+
+        lastSlotSelected.value = slotId;
 
         return true;
     };
@@ -147,6 +185,9 @@ export const useActionsStore = defineStore(storeId, () => {
             case 'l':
                 movements('j');
                 break;
+            default:
+                console.log('qui');
+                break;
         }
     };
     const doAction = (action: string, save: boolean = true) => {
@@ -154,12 +195,14 @@ export const useActionsStore = defineStore(storeId, () => {
             return false;
         }
 
-        if (movements(action)) {
-            addAction(action, save);
-        } else if (placeItem(action)) {
-            addAction(action, save);
-        } else {
+        if (action === 'r') {
             rollbackLastAction();
+        } else {
+            if (movements(action)) {
+                addAction(action, save);
+            } else if (placeItem(action)) {
+                addAction(action, save);
+            }
         }
     };
     const handleKeyPress = (event: KeyboardEvent) => {

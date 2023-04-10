@@ -23,3 +23,5 @@ export const arrayChunk = <T>(array: unknown[], chunkSize: number): T => {
 export const rgbToGrayscale = (red: number, green: number, blue: number) => (red + green + blue) / 3;
 
 export const hexToDecimal = (hex: string) => parseInt(hex, 16);
+
+export const getClonedObject = <T>(object: T): T => JSON.parse(JSON.stringify(object));
