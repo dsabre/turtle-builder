@@ -65,6 +65,18 @@
                 </ul>
             </div>
         </div>
+
+        <hr>
+
+        <div class="space-y-2">
+            <h2 class="font-bold text-lg">Camera control</h2>
+
+            <ul class="list-inside list-disc">
+                <li>Hold left mouse button and drag to move the camera around the center</li>
+                <li>Use mouse wheel to change zoom</li>
+                <li>Hold <kbd>Shift</kbd> and left mouse button while dragging to pan the camera</li>
+            </ul>
+        </div>
     </div>
 </template>
 
