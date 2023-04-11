@@ -9,6 +9,7 @@ import { storeToRefs } from 'pinia';
 
 const actionsStore = useActionsStore();
 const turtleStore = useTurtleStore();
+const {listActions} = storeToRefs(actionsStore);
 const modalColor = ref<IAppModalExposeModel>();
 const modalColorOpened = ref<boolean>(false);
 const { inventory } = storeToRefs(turtleStore);
@@ -18,6 +19,8 @@ const openModal = (slotId: number) => {
     modalColorOpened.value = true;
     slotIdSelected.value = slotId;
 };
+
+actionsStore.$subscribe(() => listActions.value = actionsStore.listActions);
 
 watch(modalColorOpened, () => {
     if (modalColorOpened.value) {
@@ -65,6 +68,13 @@ watch(modalColorOpened, () => {
             <div>
                 <h3 class="font-bold">Fill inventory with color:</h3>
                 <FormPickColor :slotId="-1" slotCommand="all" />
+            </div>
+
+            <hr>
+
+            <div class="flex items-center gap-1">
+                <h2 class="font-bold text-lg">Fuel required:</h2>
+                {{ listActions.filter((action) => ['i', 'k', 'u', 'n'].indexOf(action) > -1).length }}
             </div>
         </div>
     </div>
