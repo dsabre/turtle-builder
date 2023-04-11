@@ -3,6 +3,7 @@ import {useTurtleStore} from './turtle';
 import {nextTick, ref, toRaw} from 'vue';
 import {hexToDecimal} from '@/composables/functions';
 import * as THREE from 'three';
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 type Cube = {mesh: THREE.Mesh, line: THREE.LineSegments};
 
@@ -68,6 +69,7 @@ export const useActionsStore = defineStore(storeId, () => {
     const listActions = ref<string[]>([]);
     const lastSlotSelected = ref<number>(0);
     const mustRestoreActions = ref<boolean>(true);
+    const orbitControls = ref<OrbitControls>();
     const cubesAdded = ref<Cube[]>([]);
     const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
     const saveActions = () => localStorage.setItem(storeId, JSON.stringify(listActions.value));
@@ -138,30 +140,43 @@ export const useActionsStore = defineStore(storeId, () => {
         return true;
     };
     const movements = (action: string): boolean => {
+        let ret = false;
+
         switch (action) {
             case 'u':
                 turtle.translateY(1);
-                return true;
+                ret = true;
+                break;
             case 'n':
                 if (turtle.position.y > 0) {
                     turtle.translateY(-1);
                 }
-                return true;
+                ret = true;
+                break;
             case 'i':
                 turtle.translateX(1);
-                return true;
+                ret = true;
+                break;
             case 'k':
                 turtle.translateX(-1);
-                return true;
+                ret = true;
+                break;
             case 'j':
                 turtle.rotation.y += Math.PI / 2;
-                return true;
+                ret = true;
+                break;
             case 'l':
                 turtle.rotation.y -= Math.PI / 2;
-                return true;
+                ret = true;
+                break;
         }
 
-        return false;
+        if (ret && orbitControls.value) {
+            orbitControls.value.target.set(turtle.position.x, turtle.position.y, turtle.position.z);
+            orbitControls.value.update();
+        }
+
+        return ret;
     };
     const rollbackLastAction = (): void => {
         let lastAction = listActions.value.pop();
@@ -231,5 +246,5 @@ export const useActionsStore = defineStore(storeId, () => {
     };
     const removeListener = () => document.removeEventListener('keypress', handleKeyPress, false);
 
-    return {addListener, removeListener, listActions, clearActions, restoreActions, doAction, scene};
+    return {addListener, removeListener, listActions, clearActions, restoreActions, doAction, scene, orbitControls};
 });

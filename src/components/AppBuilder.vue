@@ -39,11 +39,20 @@ const createBuilder = () => {
     renderer.setSize(w, h);
     builder.value?.appendChild(renderer.domElement);
 
-    scene.add(toRaw(turtleStore.turtle));
+    const turtle = toRaw(turtleStore.turtle);
+
+    scene.add(turtle);
 
     camera.position.x = -3;
     camera.position.y = 3;
     camera.position.z = 3;
+
+    // camera control
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(turtle.position.x, turtle.position.y, turtle.position.z);
+    controls.update();
+    controls.enablePan = true;
+    controls.enableDamping = true;
 
     function animate() {
         requestAnimationFrame(animate);
@@ -51,16 +60,10 @@ const createBuilder = () => {
         renderer.render(scene, camera);
     }
 
+    actionsStore.orbitControls = controls;
     actionsStore.addListener();
 
     animate();
-
-    // camera control
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0.5, 0);
-    controls.update();
-    controls.enablePan = false;
-    controls.enableDamping = true;
 
     // add grid
     const gridDimensions = 100;
