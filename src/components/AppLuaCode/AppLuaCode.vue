@@ -43,13 +43,13 @@ defineExpose<IAppLuaCodeExposeModel>({ doHighlight });
 </script>
 
 <template>
-    <div class="space-y-4 max-h-[500px] overflow-y-scroll px-1">
+    <div class="space-y-4 max-h-[500px] overflow-y-auto px-1">
         <p>Each code is limited to <b>{{ actionsMaxLength }}</b> actions due to compatibility reasons.</p>
 
         <div class="space-y-2">
             <div class="flex justify-between items-center">
                 <h2 class="font-bold text-lg">Lua code:</h2>
-                <button class="flex gap-1 bg-gray-200 hover:bg-gray-300 border p-1 shadow rounded"
+                <button v-show="listActions.length > 0" class="flex gap-1 bg-gray-200 hover:bg-gray-300 border p-1 shadow rounded"
                     @click.prevent="copyCode">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -59,14 +59,17 @@ defineExpose<IAppLuaCodeExposeModel>({ doHighlight });
                     <span>Copy</span>
                 </button>
             </div>
-            <pre class="text-xs"><code ref="codeElement" class="language-lua">{{ code }}</code></pre>
-            <p class="text-sm leading-7">Paste this code to <a href="https://pastebin.com/" target="_blank">pastebin.com</a>, then run it directly in your turtle using<br><span class="font-mono bg-gray-200 p-2 border rounded">pastebin run [PASTEBIN_CODE]</span></p>
+            <div v-show="listActions.length > 0">
+                <pre class="text-xs"><code ref="codeElement" class="language-lua">{{ code }}</code></pre>
+                <p class="text-sm leading-7">Paste this code to <a href="https://pastebin.com/" target="_blank">pastebin.com</a>, then run it directly in your turtle using<br><span class="font-mono bg-gray-200 p-2 border rounded">pastebin run [PASTEBIN_CODE]</span></p>
+            </div>
+            <p v-show="listActions.length < 1" class="font-mono">empty</p>
         </div>
 
         <div class="space-y-2">
             <div class="flex justify-between items-center">
                 <h2 class="font-bold text-lg">Actions strings:</h2>
-                <button class="flex gap-1 bg-gray-200 hover:bg-gray-300 border p-1 shadow rounded"
+                <button v-show="listActions.length > 0" class="flex gap-1 bg-gray-200 hover:bg-gray-300 border p-1 shadow rounded"
                     @click.prevent="copyStrings">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-6 h-6">
@@ -76,7 +79,8 @@ defineExpose<IAppLuaCodeExposeModel>({ doHighlight });
                     <span>Copy</span>
                 </button>
             </div>
-            <pre class="text-xs">{{ arrayChunk<string[][]>(listActions, actionsMaxLength).map((chunk: string[]) => chunk.join('')).join('\n') }}</pre>
+            <pre v-show="listActions.length > 0" class="text-xs">{{ arrayChunk<string[][]>(listActions, actionsMaxLength).map((chunk: string[]) => chunk.join('')).join('\n') }}</pre>
+            <p v-show="listActions.length < 1" class="font-mono">empty</p>
         </div>
     </div>
 </template>
