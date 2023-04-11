@@ -4,6 +4,8 @@ import {nextTick, ref, toRaw} from 'vue';
 import {hexToDecimal} from '@/composables/functions';
 import * as THREE from 'three';
 
+type Cube = {mesh: THREE.Mesh, line: THREE.LineSegments};
+
 const validActions = [
     'i',
     'j',
@@ -34,14 +36,12 @@ const validActions = [
     'r'
 ];
 const storeId = 'actions';
-const getCube = (r: number, g: number, b: number): THREE.Mesh => {
+const getCube = (r: number, g: number, b: number): Cube => {
     const geometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
     const edges = new THREE.EdgesGeometry( geometry );
     const material = new THREE.MeshBasicMaterial({
         vertexColors: true
     });
-    const line = new THREE.LineSegments(edges, material);
-    console.log(line)
     
     const color = new THREE.Color(`rgb(${r}, ${g}, ${b})`);
     const colors = Array(6).fill(color);
@@ -55,7 +55,10 @@ const getCube = (r: number, g: number, b: number): THREE.Mesh => {
 
     // define the new attribute
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(facesColors, 3));
-    return new THREE.Mesh(geometry, material);
+    return {
+        mesh: new THREE.Mesh(geometry, material),
+        line: new THREE.LineSegments(edges, material)
+    };
 };
 
 export const useActionsStore = defineStore(storeId, () => {
@@ -65,7 +68,7 @@ export const useActionsStore = defineStore(storeId, () => {
     const listActions = ref<string[]>([]);
     const lastSlotSelected = ref<number>(0);
     const mustRestoreActions = ref<boolean>(true);
-    const cubesAdded = ref<THREE.Mesh[]>([]);
+    const cubesAdded = ref<Cube[]>([]);
     const getActionsFromStorage = (): string[] => JSON.parse(localStorage.getItem(storeId) || '[]');
     const saveActions = () => localStorage.setItem(storeId, JSON.stringify(listActions.value));
     const addAction = (action: string, save: boolean) => {
@@ -115,7 +118,7 @@ export const useActionsStore = defineStore(storeId, () => {
         const y = turtle.position.y - 1;
         const z = turtle.position.z;
 
-        if (cubesAdded.value.filter((mesh) => mesh.position.x === x && mesh.position.y === y && mesh.position.z === z).length > 0) {
+        if (cubesAdded.value.filter((cube) => cube.mesh.position.x === x && cube.mesh.position.y === y && cube.mesh.position.z === z).length > 0) {
             return false;
         }
 
@@ -123,8 +126,10 @@ export const useActionsStore = defineStore(storeId, () => {
         turtleStore.inventory[slotId].quantity--;
 
         const cube = getCube(r, g, b);
-        scene.value?.add(cube);
-        cube.position.set(x, y, z);
+        scene.value?.add(cube.mesh);
+        scene.value?.add(cube.line);
+        cube.mesh.position.set(x, y, z);
+        cube.line.position.set(x, y, z);
 
         cubesAdded.value.push(cube);
 
