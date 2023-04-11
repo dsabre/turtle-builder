@@ -24,6 +24,23 @@ const getDimensionsOffset = (): { w: number; h: number } => {
         h: 150
     }
 };
+let cameraHolder: THREE.PerspectiveCamera | null = null;
+let rendererHolder: THREE.WebGLRenderer | null = null;
+const resizeBuilder = () => {
+    const dimensionsOffset = getDimensionsOffset();
+
+    const w = window.innerWidth - dimensionsOffset.w;
+    const h = window.innerHeight - dimensionsOffset.h;
+
+    if (cameraHolder !== null) {
+        cameraHolder.aspect = w / h;
+        cameraHolder.updateProjectionMatrix();
+    }
+
+    if (rendererHolder !== null) {
+        rendererHolder.setSize(w, h);
+    }
+};
 const createBuilder = () => {
     builder.value.innerHTML = '';
     const dimensionsOffset = getDimensionsOffset();
@@ -33,22 +50,22 @@ const createBuilder = () => {
 
     const scene = new THREE.Scene();
     actionsStore.scene = scene;
-    const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+    cameraHolder = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
 
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(w, h);
-    builder.value?.appendChild(renderer.domElement);
+    rendererHolder = new THREE.WebGLRenderer();
+    rendererHolder.setSize(w, h);
+    builder.value?.appendChild(rendererHolder.domElement);
 
     const turtle = toRaw(turtleStore.turtle);
 
     scene.add(turtle);
 
-    camera.position.x = -3;
-    camera.position.y = 3;
-    camera.position.z = 3;
+    cameraHolder.position.x = -3;
+    cameraHolder.position.y = 3;
+    cameraHolder.position.z = 3;
 
     // camera control
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(cameraHolder, rendererHolder.domElement);
     controls.target.set(turtle.position.x, turtle.position.y, turtle.position.z);
     controls.update();
     controls.enablePan = true;
@@ -57,7 +74,9 @@ const createBuilder = () => {
     function animate() {
         requestAnimationFrame(animate);
 
-        renderer.render(scene, camera);
+        if (cameraHolder !== null && rendererHolder !== null) {
+            rendererHolder.render(scene, cameraHolder);
+        }
     }
 
     actionsStore.orbitControls = controls;
@@ -79,15 +98,7 @@ const createBuilder = () => {
     }
 
     // listen for window resizing
-    window.onresize = () => {
-        const w = window.innerWidth - dimensionsOffset.w;
-        const h = window.innerHeight - dimensionsOffset.h;
-
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(w, h);
-    };
+    window.onresize = () => resizeBuilder();
 };
 const onFullscreenchange = () => fullscreenStore.fullscreen = !!document.fullscreenElement;
 document.addEventListener("fullscreenchange", onFullscreenchange, false);
@@ -98,7 +109,7 @@ fullscreenStore.$subscribe(() => {
         builder.value.requestFullscreen();
     }
 
-    createBuilder();
+    resizeBuilder();
 });
 
 // initial creation
