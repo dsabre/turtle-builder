@@ -5,7 +5,7 @@ import {getClonedObject, hexToDecimal} from '@/composables/functions';
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-type Cube = {mesh: THREE.Mesh, line: THREE.LineSegments};
+type Cube = {mesh: THREE.Mesh, line: THREE.LineSegments, fromSlotId: number};
 
 const validActions = [
     'i',
@@ -37,7 +37,7 @@ const validActions = [
     'r'
 ];
 const storeId = 'actions';
-const getCube = (r: number, g: number, b: number): Cube => {
+const getCube = (r: number, g: number, b: number, fromSlotId: number): Cube => {
     const geometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
     const edges = new THREE.EdgesGeometry( geometry );
     const material = new THREE.MeshBasicMaterial({
@@ -58,7 +58,8 @@ const getCube = (r: number, g: number, b: number): Cube => {
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(facesColors, 3));
     return {
         mesh: new THREE.Mesh(geometry, material),
-        line: new THREE.LineSegments(edges, material)
+        line: new THREE.LineSegments(edges, material),
+        fromSlotId
     };
 };
 
@@ -127,7 +128,7 @@ export const useActionsStore = defineStore(storeId, () => {
         const {r, g, b} = color;
         turtleStore.inventory[slotId].quantity--;
 
-        const cube = getCube(r, g, b);
+        const cube = getCube(r, g, b, slotId);
         scene.value?.add(cube.mesh);
         scene.value?.add(cube.line);
         cube.mesh.position.set(x, y, z);
@@ -150,8 +151,8 @@ export const useActionsStore = defineStore(storeId, () => {
             case 'n':
                 if (turtle.position.y > 0) {
                     turtle.translateY(-1);
+                    ret = true;
                 }
-                ret = true;
                 break;
             case 'i':
                 turtle.translateX(1);
@@ -215,8 +216,11 @@ export const useActionsStore = defineStore(storeId, () => {
                 }
 
                 const cube = cubesAdded.value[cubeIndex];
+
                 scene.value?.remove(cube.mesh);
                 scene.value?.remove(cube.line);
+
+                turtleStore.inventory[cube.fromSlotId].quantity++;
 
                 delete cubesAdded.value[cubeIndex];
                 break;
