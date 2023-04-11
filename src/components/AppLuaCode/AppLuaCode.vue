@@ -43,7 +43,7 @@ defineExpose<IAppLuaCodeExposeModel>({ doHighlight });
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-4 max-h-[500px] overflow-y-scroll px-1">
         <p>Each code is limited to <b>{{ actionsMaxLength }}</b> actions due to compatibility reasons.</p>
 
         <div class="space-y-2">
