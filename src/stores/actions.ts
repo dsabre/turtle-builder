@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia';
 import {useTurtleStore} from './turtle';
 import {nextTick, ref, toRaw} from 'vue';
-import {hexToDecimal} from '@/composables/functions';
+import {getClonedObject, hexToDecimal} from '@/composables/functions';
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -206,7 +206,19 @@ export const useActionsStore = defineStore(storeId, () => {
                 movements('j');
                 break;
             default:
-                console.log('qui');
+                const turtlePosition = getClonedObject(turtle.position);
+                turtlePosition.y -= 1;
+                const cubeIndex = cubesAdded.value.map((cube) => JSON.stringify(cube.mesh.position)).indexOf(JSON.stringify(turtlePosition));
+
+                if(cubeIndex < 0){
+                    return;
+                }
+
+                const cube = cubesAdded.value[cubeIndex];
+                scene.value?.remove(cube.mesh);
+                scene.value?.remove(cube.line);
+
+                delete cubesAdded.value[cubeIndex];
                 break;
         }
     };
